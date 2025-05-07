@@ -76,31 +76,84 @@ docker compose down
 
 ## Redpanda
 
+### Install Redpanda CLI tools
 
-
-Running a local Redpanda Cluster with Multiple Brokers
-Redpanda CLI tools
-
-1. Set up a Local Kafka Cluster with Multiple Brokers using the Docker Compose tool
+[Get Redpanda](https://docs.redpanda.com/current/get-started/rpk-install/)
 
 ```bash
-wget https://github.com/apache/kafka/blob/trunk/docker/examples/docker-compose-files/cluster/combined/plaintext/docker-compose.yml
+mkdir -p redpanda
+cd redpanda
+wget https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip
+unzip rpk-linux-amd64.zip
+rm rpk-linux-amd64.zip
+```
 
-export IMAGE=apache/kafka:latest
+### Running a local Redpanda Cluster with Multiple Brokers
 
+```bash
+wget https://docs.redpanda.com/redpanda-labs/docker-compose/_attachments/three-brokers/docker-compose.yml
 ```
 
 
 
-1. Learn about the kafka cli tools
-   1. Create a topic
-   2. List topics
-   3. Sent at least 10 simple text messages with the console producer
-   4. Receive the messages with the console consumer
-   5. Delete the topic
-2. Learn about the redpanda CLI tool
-   1. Create a topic
-   2. List topics
-   3. Sent at least 10 simple text messages with the console producer
-   4. Receive the messages with the console consumer
-   5. Delete the topic
+1. Set up a Local Kafka Cluster with Multiple Brokers using the Docker Compose tool
+
+```bash
+wget https://docs.redpanda.com/redpanda-labs/docker-compose/_attachments/three-brokers/docker-compose.yml
+
+export REDPANDA_VERSION=v25.1.2
+export REDPANDA_CONSOLE_VERSION=v3.1.0
+docker compose up -d
+
+docker ps
+```
+
+Open Redpanda Console at [localhost:8080](http://localhost:8080/)
+
+### Learn about the Redpanda CLI tool
+
+Create a topic
+
+```bash
+bin/kafka-topics.sh --bootstrap-server localhost:29092 --create --topic task1 --partitions 6 --replication-factor 3
+```
+
+List topics
+
+```bash
+bin/kafka-topics.sh --bootstrap-server localhost:29092 --list
+```
+
+Describe the topic
+
+```bash
+bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
+```
+
+Sent at least 10 simple text messages with the console producer
+
+```bash
+bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
+```
+
+Receive the messages with the console consumer
+
+```bash
+bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
+bin/kafka-console-producer.sh --bootstrap-server localhost:29092 --topic task1
+
+bin/kafka-console-consumer.sh --bootstrap-server localhost:29092 --topic task1 --from-beginning
+```
+
+Delete the topic
+
+```bash
+bin/kafka-topics.sh --bootstrap-server localhost:29092 --delete --topic task1
+```
+
+Delete the Kafka cluster
+
+```bash
+docker compose down -v
+```
+
