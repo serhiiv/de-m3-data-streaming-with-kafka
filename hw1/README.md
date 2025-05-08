@@ -24,7 +24,7 @@ wget https://raw.githubusercontent.com/apache/kafka/refs/heads/trunk/docker/exam
 export IMAGE=apache/kafka:4.0.0
 
 docker compose up -d
-docker ps
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 ```
 ### Learn about the kafka cli tools
 
@@ -49,7 +49,7 @@ bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
 Sent at least 10 simple text messages with the console producer
 
 ```bash
-bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
+bin/kafka-console-producer.sh --bootstrap-server localhost:29092 --topic task1
 ```
 
 Receive the messages with the console consumer
@@ -68,6 +68,8 @@ Delete the Kafka cluster
 
 ```bash
 docker compose down
+cd ..
+rm -r kafka/
 ```
 
 
@@ -102,7 +104,7 @@ export REDPANDA_VERSION=v25.1.2
 export REDPANDA_CONSOLE_VERSION=v3.1.0
 docker compose up -d
 
-docker ps
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 ```
 
 Open Redpanda Console at [localhost:8080](http://localhost:8080/)
@@ -157,5 +159,7 @@ Delete the Kafka cluster
 
 ```bash
 docker compose down -v
+cd ..
+rm -r redpanda/
 ```
 
