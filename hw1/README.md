@@ -55,9 +55,6 @@ bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
 Receive the messages with the console consumer
 
 ```bash
-bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
-bin/kafka-console-producer.sh --bootstrap-server localhost:29092 --topic task1
-
 bin/kafka-console-consumer.sh --bootstrap-server localhost:29092 --topic task1 --from-beginning
 ```
 
@@ -112,43 +109,48 @@ Open Redpanda Console at [localhost:8080](http://localhost:8080/)
 
 ### Learn about the Redpanda CLI tool
 
+```bash
+export RPK_BROKERS="localhost:19092,localhost:29092,localhost:39092"
+```
+
 Create a topic
 
 ```bash
-bin/kafka-topics.sh --bootstrap-server localhost:29092 --create --topic task1 --partitions 6 --replication-factor 3
+./rpk topic create task1 -r 3 -p 6
 ```
 
 List topics
 
 ```bash
-bin/kafka-topics.sh --bootstrap-server localhost:29092 --list
+./rpk topic list
 ```
 
 Describe the topic
 
 ```bash
-bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
+./rpk topic describe task1
 ```
 
 Sent at least 10 simple text messages with the console producer
 
 ```bash
-bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
+./rpk topic produce task1 -f '%p %k %v\n'
+
+0 key0 value0	
+1 key1 value1
 ```
 
 Receive the messages with the console consumer
 
 ```bash
-bin/kafka-topics.sh --bootstrap-server localhost:29092 --describe --topic task1
-bin/kafka-console-producer.sh --bootstrap-server localhost:29092 --topic task1
-
-bin/kafka-console-consumer.sh --bootstrap-server localhost:29092 --topic task1 --from-beginning
+export RPK_BROKERS="localhost:19092,localhost:29092,localhost:39092"
+./rpk topic consume task1
 ```
 
 Delete the topic
 
 ```bash
-bin/kafka-topics.sh --bootstrap-server localhost:29092 --delete --topic task1
+./rpk topic delete task1
 ```
 
 Delete the Kafka cluster
