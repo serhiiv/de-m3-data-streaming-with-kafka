@@ -1,0 +1,39 @@
+name: kafka
+services:
+  broker:
+    container_name: broker
+    hostname: broker
+    image: apache/kafka:latest
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: DOCKER://broker:19092,HOST://localhost:9092,CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: DOCKER://broker:19092,HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - 19092:19092
+    networks:
+      - kafka-cluster
+
+  producer:
+    container_name: producer
+    hostname: producer
+    build:
+      context: producer/
+    volumes:
+      - ./producer/data:/app/data
+    depends_on:
+      - broker
+    networks:
+      - kafka-cluster
+
+networks:
+  kafka-cluster:
+    name: kafka-cluster
