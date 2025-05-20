@@ -2,3 +2,4 @@ confluent-kafka
 confluent-kafka-stubs
 pandas
 pandas-stubs
+prometheus-client

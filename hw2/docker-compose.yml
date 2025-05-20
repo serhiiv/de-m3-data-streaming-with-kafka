@@ -1,5 +1,7 @@
 name: kafka
+
 services:
+
   broker:
     container_name: broker
     hostname: broker
@@ -22,25 +24,62 @@ services:
     networks:
       - kafka-cluster
 
-  producer:
-    container_name: producer
-    hostname: producer
-    build:
-      context: producer/
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    hostname: prometheus
+    ports:
+      - 9090:9090
     volumes:
-      - ./producer/data:/app/data
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - kafka-cluster
     depends_on:
       - broker
+
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    hostname: grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - ./grafana/dashboard.json:/etc/grafana/provisioning/dashboards/home.json
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+       - prometheus
     networks:
       - kafka-cluster
 
+
+  producer:
+    scale: ${PRODUCER_COUNT:-1}
+    image: producer:latest
+    build:
+      context: producer/
+    environment:
+      - PRODUCER_COUNT=${PRODUCER_COUNT:-1}
+      - PARTITION_COUNT=${PARTITION_COUNT:-1}
+    volumes:
+      - ./producer/data:/app/data
+    depends_on:
+      - grafana
+    networks:
+      - kafka-cluster
+
+
   consumer:
-    container_name: consumer
-    hostname: consumer
+    scale: ${CONSUMER_COUNT:-1}
+    image: consumer:latest
     build:
       context: consumer/
     depends_on:
-      - broker
+      - producer
     networks:
       - kafka-cluster
 
@@ -48,3 +87,4 @@ services:
 networks:
   kafka-cluster:
     name: kafka-cluster
+    # driver: bridge
