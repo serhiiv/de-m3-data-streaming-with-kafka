@@ -6,6 +6,7 @@
 дані беремо з Kagle [Twitter-Dataset](https://www.kaggle.com/datasets/goyaladi/twitter-dataset)
 
 
+- [Provision dashboards and data sources](https://grafana.com/tutorials/provision-dashboards-and-data-sources/)
 
 
 
