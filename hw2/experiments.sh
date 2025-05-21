@@ -26,25 +26,23 @@ case $n in
 esac
 
 echo
-echo "Starting experiment"
+echo "Starting experiment:"
 docker compose up -d 
-sleep wait 10 seconds
-sleep 10
-
 echo
-echo "containers status"
-docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-sleep wait 15 seconds
-sleep 15
+echo "Containers status:"
+docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+echo
+echo "wait 20 seconds to open Grafana"
+sleep 20
 
-# uncomment to see prometheus web interface
+# # uncomment to see prometheus web interface
 # echo
 # echo "opening prometheus"
 # x-www-browser http://localhost:9090
 # sleep 1
 
 echo
-echo "opening grafana admin/admin"
+echo "opening Grafana admin/admin"
 x-www-browser "http://localhost:3000/d/ea51098d-97b3-4d18-b72e-748a296f402b/kafka-based-experiment?orgId=1&from=now-5m&to=now&timezone=Europe%2FKyiv&refresh=5s"
 sleep 10
 

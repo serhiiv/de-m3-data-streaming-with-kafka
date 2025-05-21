@@ -1,0 +1,5 @@
+-r consumer/requirements.txt
+-r producer/requirements.txt
+
+confluent-kafka-stubs
+pandas-stubs

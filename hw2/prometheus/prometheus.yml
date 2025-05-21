@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'consumers'
+    scrape_interval: 1s
+    static_configs:
+      - targets: ['kafka-consumer-1:8000']
+      - targets: ['kafka-consumer-2:8000']
+      - targets: ['kafka-consumer-3:8000']
+      - targets: ['kafka-consumer-4:8000']
+      - targets: ['kafka-consumer-5:8000']
+      - targets: ['kafka-consumer-6:8000']
+      - targets: ['kafka-consumer-7:8000']
+      - targets: ['kafka-consumer-8:8000']
+      - targets: ['kafka-consumer-9:8000']
+      - targets: ['kafka-consumer-10:8000']

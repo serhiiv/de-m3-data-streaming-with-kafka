@@ -32,7 +32,7 @@ services:
     ports:
       - 9090:9090
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - kafka-cluster
     depends_on:
@@ -88,4 +88,3 @@ services:
 networks:
   kafka-cluster:
     name: kafka-cluster
-    # driver: bridge
