@@ -1,0 +1,91 @@
+name: kafka
+
+services:
+
+  broker:
+    container_name: broker
+    hostname: broker
+    image: apache/kafka:latest
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: DOCKER://broker:19092,HOST://localhost:9092,CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: DOCKER://broker:19092,HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - 19092:19092
+    networks:
+      - kafka-cluster
+
+
+  # prometheus:
+  #   image: prom/prometheus
+  #   container_name: prometheus
+  #   hostname: prometheus
+  #   ports:
+  #     - 9090:9090
+  #   volumes:
+  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   networks:
+  #     - kafka-cluster
+  #   depends_on:
+  #     - broker
+
+
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   hostname: grafana
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - ./grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+  #     - ./grafana/default.yaml:/etc/grafana/provisioning/dashboards/default.yaml
+  #     - ./grafana/dashboards:/var/lib/grafana/dashboards
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=admin
+  #     - GF_SECURITY_ADMIN_PASSWORD=admin
+  #   depends_on:
+  #      - prometheus
+  #   networks:
+  #     - kafka-cluster
+
+
+  producer:
+    scale: ${PRODUCER_COUNT:-1}
+    image: producer:latest
+    build:
+      context: producer/
+    environment:
+      - PRODUCER_COUNT=${PRODUCER_COUNT:-1}
+      - PARTITION_COUNT=${PARTITION_COUNT:-1}
+    volumes:
+      - ./producer/data:/app/data
+    depends_on:
+      - broker
+      # - grafana
+    networks:
+      - kafka-cluster
+
+
+  # consumer:
+  #   scale: ${CONSUMER_COUNT:-1}
+  #   image: consumer:latest
+  #   build:
+  #     context: consumer/
+  #   depends_on:
+  #     - producer
+  #   networks:
+  #     - kafka-cluster
+
+
+networks:
+  kafka-cluster:
+    name: kafka-cluster

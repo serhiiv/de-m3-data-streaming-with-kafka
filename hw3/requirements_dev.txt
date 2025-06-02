@@ -1,0 +1,5 @@
+-r consumer/requirements.txt
+-r producer/requirements.txt
+
+confluent-kafka-stubs==0.0.3
+pandas-stubs==2.2.3.250527
