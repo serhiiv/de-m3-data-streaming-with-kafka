@@ -36,8 +36,7 @@ def produce(df):
         print(f"Topic '{topic_name}' already exists.")
     else:
         print(f"Creating the topic '{topic_name}'...")
-        new_topic = NewTopic(topic=topic_name)
-        # , num_partitions=1, replication_factor=1
+        new_topic = NewTopic(topic=topic_name, num_partitions=1, replication_factor=1)
         fs = admin_client.create_topics([new_topic])
         for topic, f in fs.items():
             try:
@@ -51,12 +50,12 @@ def produce(df):
     for _, row in df.iterrows():
         producer.poll(0)
         message_key = str(row["order"])
-        message_value = str(row["url"])
+        message_value = {"url": row["url"]}
 
         producer.produce(
             topic=topic_name,
             key=message_key.encode("utf-8"),
-            value=message_value.encode("utf-8"),
+            value=json.dumps(message_value).encode("utf-8"),
             on_delivery=delivery_report,
         )
         time.sleep(0.01)  # simulate some delay
@@ -66,6 +65,6 @@ def produce(df):
 if __name__ == "__main__":
     # get dataframe from csv file
     df = get_df()
-    
+
     # produce messages to kafka topic
     produce(df)

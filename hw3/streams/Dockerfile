@@ -4,8 +4,7 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-RUN mkdir -p data
 
-COPY producer.py .
+COPY streams.py .
 
-CMD ["python", "producer.py"]
+CMD ["faust", "-A", "streams", "worker", "-l", "info"]

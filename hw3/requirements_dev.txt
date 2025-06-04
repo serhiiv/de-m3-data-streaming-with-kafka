@@ -1,4 +1,4 @@
--r consumer/requirements.txt
+-r streams/requirements.txt
 -r producer/requirements.txt
 
 confluent-kafka-stubs==0.0.3
