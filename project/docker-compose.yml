@@ -1,0 +1,96 @@
+name: kafka
+services:
+  broker:
+    container_name: broker
+    hostname: broker
+    image: apache/kafka:3.9.1
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: DOCKER://broker:19092,HOST://localhost:9092,CONTROLLER://localhost:9093
+      KAFKA_ADVERTISED_LISTENERS: DOCKER://broker:19092,HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - 19092:19092
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - kafka-cluster
+
+
+  producer:
+    container_name: producer
+    # image: local-producer:latest
+    image: serhii714/de-module-3-kafka:producer
+    build:
+      context: producer/
+    volumes:
+      - ./producer/data:/app/data
+    depends_on:
+      broker:
+        condition: service_healthy
+    networks:
+      - kafka-cluster
+
+
+  language:
+    container_name: language
+    # image: local-language:latest
+    image: serhii714/de-module-3-kafka:language
+    build:
+      context: microservices/language/
+    depends_on:
+      - producer
+    networks:
+      - kafka-cluster
+
+
+  sentiment:
+    container_name: sentiment
+    image: serhii714/de-module-3-kafka:sentiment
+    build:
+      context: microservices/sentiment/
+    depends_on:
+      - language
+    networks:
+      - kafka-cluster
+
+
+  person:
+    container_name: person
+    image: serhii714/de-module-3-kafka:person
+    build:
+      context: microservices/person/
+    depends_on:
+      - sentiment
+    networks:
+      - kafka-cluster
+
+
+  statistics:
+    container_name: statistics
+    image: serhii714/de-module-3-kafka:statistics
+    build:
+      context: microservices/statistics/
+    ports:
+      - 6066:6066
+    depends_on:
+      - person
+    networks:
+      - kafka-cluster
+
+
+networks:
+  kafka-cluster:
+    name: kafka-cluster
