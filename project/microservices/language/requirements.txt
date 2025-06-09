@@ -1,2 +1,3 @@
-faust-streaming==0.11.3
-langdetect==1.0.9
+faust-streaming
+faust-streaming-rocksdb
+langdetect

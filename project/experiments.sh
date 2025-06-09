@@ -5,7 +5,7 @@ echo "Starting experiment:"
 echo
 # echo "Build :"
 # echo
-# docker compose build --no-cache --push --progress plain
+# docker compose build --no-cache --push
 # echo
 echo "UP:"
 echo
@@ -23,7 +23,7 @@ sleep 20
 
 echo
 while true; do
-    read -p "Do you wish to shut down Docker? " yn
+    read -p "Do you wish to shut down Docker containers? " yn
     case $yn in
         [Yy]* ) break;;
         [Nn]* ) exit;;
@@ -32,7 +32,7 @@ while true; do
 done
 
 echo
-echo "shutting down Docker"
+echo "shutting down Docker containers"
 docker compose down
 
 echo
@@ -46,10 +46,11 @@ while true; do
 done
 
 echo
-echo "delete images:"
+echo "delete images"
+echo
 docker image rm apache/kafka:3.9.1
-docker image rm local-producer:latest
-docker image rm local-language:latest
-docker image rm local-sentiment:latest
-docker image rm local-person:latest
-docker image rm local-statistics:latest
+docker image rm serhii714/de-module-3-kafka:producer
+docker image rm serhii714/de-module-3-kafka:language
+docker image rm serhii714/de-module-3-kafka:sentiment
+docker image rm serhii714/de-module-3-kafka:person
+docker image rm serhii714/de-module-3-kafka:statistics

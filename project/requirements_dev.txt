@@ -2,6 +2,7 @@
 -r microservices/person/requirements.txt
 -r microservices/sentiment/requirements.txt
 -r microservices/statistics/requirements.txt
+-r produser/requirements.txt
 
-confluent-kafka-stubs==0.0.3
-pandas-stubs==2.2.3.250527
+confluent-kafka-stubs
+pandas-stubs

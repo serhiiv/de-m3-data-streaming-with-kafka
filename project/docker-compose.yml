@@ -31,7 +31,6 @@ services:
 
   producer:
     container_name: producer
-    # image: local-producer:latest
     image: serhii714/de-module-3-kafka:producer
     build:
       context: producer/
@@ -46,7 +45,6 @@ services:
 
   language:
     container_name: language
-    # image: local-language:latest
     image: serhii714/de-module-3-kafka:language
     build:
       context: microservices/language/

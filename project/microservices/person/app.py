@@ -1,14 +1,16 @@
 import faust
+from typing import AsyncIterable
+from faust import StreamT
 from transformers import pipeline, AutoTokenizer, AutoModelForTokenClassification  # type: ignore
 
-tokenizer = AutoTokenizer.from_pretrained("Davlan/bert-base-multilingual-cased-ner-hrl")
-model = AutoModelForTokenClassification.from_pretrained(
-    "Davlan/bert-base-multilingual-cased-ner-hrl"
-)
+# Load a pre-trained model and tokenizer
+model_name = "Davlan/distilbert-base-multilingual-cased-ner-hrl"
 
-# Create pipeline with explicit tokenizer and model
-ner_pipeline = pipeline("ner", model=model, tokenizer=tokenizer, grouped_entities=True)
-SUPPORTED_LANGUAGES = ["ar", "en", "fr", "de", "hi", "it", "pt", "es"]
+# Load the model and tokenizer
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForTokenClassification.from_pretrained(model_name)
+
+nlp = pipeline("ner", model=model, tokenizer=tokenizer, aggregation_strategy="max")
 
 
 class InTweet(faust.Record):
@@ -24,9 +26,12 @@ class OutTweet(faust.Record):
     persons: list[str]
 
 
-app = faust.App("person", broker="kafka://broker:19092")
+app = faust.App("person", broker="kafka://broker:19092", store="rocksdb://")
 topic = app.topic(
-    "sentiment-language-tweets-topic", value_type=InTweet, partitions=1, internal=False
+    "sentiment-language-tweets-topic",
+    value_type=InTweet,
+    partitions=None,
+    internal=False,
 )
 out_topic = app.topic(
     "person-sentiment-language-tweets-topic",
@@ -37,34 +42,32 @@ out_topic = app.topic(
 
 
 def extract_persons(tweet: str) -> list:
-    ner_results = ner_pipeline(tweet)
+    ner_results = nlp(tweet)
     if not ner_results:
         return list()
-    persons = [
+    return [
         ent.get("word", "")
         for ent in ner_results
         if isinstance(ent, dict) and ent.get("entity_group") == "PER"
     ]
-    return persons if persons else list()
 
 
-@app.agent(topic)
-async def person(tweets):
-    async for tweet in tweets:
-        print(f"Processing tweet: {tweet.text}")
+@app.agent(topic, sink=[out_topic])
+async def person(stream: StreamT[InTweet]) -> AsyncIterable[OutTweet]:
+    async for tweet in stream:
+        persons = extract_persons(tweet.text)
 
-        if tweet.language not in ["ar", "en", "fr", "de", "hi", "it", "pt", "es"]:
-            persons = list()
-        else:
-            persons = extract_persons(tweet.text)
+        if persons:
+            print(f"Processing persons: {persons} in tweet: {tweet.text}")
 
-        print(f"Processing persons: {persons} in tweet: {tweet.text}")
-        await out_topic.send(
-            value=OutTweet(
-                text=tweet.text,
-                language=tweet.language,
-                sentiment=tweet.sentiment,
-                persons=persons,
-            ),
-            force=True,
+        out_tweet = OutTweet(
+            text=tweet.text,
+            language=tweet.language,
+            sentiment=tweet.sentiment,
+            persons=persons,
         )
+        yield out_tweet
+
+
+if __name__ == "__main__":
+    app.main()

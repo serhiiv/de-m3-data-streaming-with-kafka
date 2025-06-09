@@ -1,36 +1,7 @@
-import os
 import time
 import json
-import socket
-import pandas as pd
 from confluent_kafka import Producer
 from confluent_kafka.admin import AdminClient, NewTopic  # type: ignore
-
-
-# def get_df():
-#     """
-#     Read text file with UTF-8 encoding into pandas DataFrame
-#     Returns empty DataFrame if file doesn't exist or on error
-#     """
-#     if not os.path.exists("data/multilingual.txt"):
-#         print("File 'data/multilingual.txt' does not exist. Please check the path.")
-#         return pd.DataFrame()
-
-#     try:
-#         df = pd.read_csv(
-#             "data/multilingual.txt",
-#             sep=",",              # Use comma as separator
-#             encoding="utf-8",     # Specify UTF-8 encoding
-#             on_bad_lines="skip"   # Skip lines with wrong number of fields
-#         )
-#         print("df.shape:", df.shape)
-#         print("df:", df.head(2))
-#         print("--" * 20)
-#         return df
-
-#     except Exception as e:
-#         print(f"Error reading file: {e}")
-#         return pd.DataFrame()
 
 
 def delivery_report(err, msg):
@@ -38,13 +9,13 @@ def delivery_report(err, msg):
         print(f"Delivery failed: {err}")
     else:
         print(
-            f"Delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}"
+            f"Delivered to topic {msg.topic()} key {msg.key()} at offset {msg.offset()}"
         )
 
 
 def produce():
     conf = {"bootstrap.servers": "broker:19092"}
-    topic_name = "raw-tweets-topic"
+    topic_name = "tweets-topic"
 
     # Create topick with admin function
     admin_client = AdminClient(conf)
@@ -67,26 +38,22 @@ def produce():
     producer = Producer(conf)
 
     text = open("data/multilingual.txt").read().split("\n")[:-1]
-
+    key_number = 0
     for line in text:
         producer.poll(0)
-        # Use a timestamp-based key
-        message_key = str(int(time.time() * 1000))
+        message_key = str(key_number).encode("utf-8")
         message_value = {"text": line}
+        key_number += 1
 
         producer.produce(
             topic=topic_name,
-            key=message_key.encode("utf-8"),
+            key=message_key,
             value=json.dumps(message_value).encode("utf-8"),
             on_delivery=delivery_report,
         )
-        time.sleep(0.001)  # simulate some delay
+
     producer.flush()
 
 
 if __name__ == "__main__":
-    # # get dataframe from csv file
-    # df = get_df()
-
-    # produce messages to kafka topic
     produce()

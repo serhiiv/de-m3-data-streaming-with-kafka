@@ -1,16 +1,16 @@
 import faust
-from transformers import pipeline  # type: ignore
+from typing import AsyncIterable
+from faust import StreamT
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline  # type: ignore
 
-# from langdetect import detect
-# import warnings
+# Load a pre-trained model and tokenizer
+model_name = "nlptown/bert-base-multilingual-uncased-sentiment"
+# Load the correct model class for sentiment analysis
+model = AutoModelForSequenceClassification.from_pretrained(model_name)
+# Also load the corresponding tokenizer
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-# warnings.filterwarnings("ignore")
-
-# Initialize the sentiment analysis pipeline
-# Note: The model 'nlptown/bert-base-multilingual-uncased-sentiment' is a multilingual sentiment analysis model.
-sentiment_pipeline = pipeline(
-    "sentiment-analysis", model="nlptown/bert-base-multilingual-uncased-sentiment"
-)
+nlp = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
 
 
 class InTweet(faust.Record):
@@ -24,49 +24,36 @@ class OutTweet(faust.Record):
     sentiment: str
 
 
-app = faust.App("sentiment", broker="kafka://broker:19092")
+app = faust.App("sentiment", broker="kafka://broker:19092", store="rocksdb://")
 topic = app.topic(
-    "language-tweets-topic", value_type=InTweet, partitions=1, internal=False
+    "language-tweets-topic", value_type=InTweet, partitions=None, internal=False
 )
 out_topic = app.topic(
     "sentiment-language-tweets-topic", value_type=OutTweet, partitions=1, internal=True
 )
 
 
-@app.agent(topic)
-async def sentiment(tweets):
-    async for tweet in tweets:
-        print(f"Processing tweet: {tweet.text}")
+@app.agent(topic, sink=[out_topic])
+async def sentiment(stream: StreamT[InTweet]) -> AsyncIterable[OutTweet]:
+    async for tweet in stream:
 
-        if tweet.language not in ["ar", "en", "fr", "de", "hi", "it", "pt", "es"]:
-            sentiment = "unknown"
+        pipeline_result = nlp(tweet.text)
+        results = list(pipeline_result)
+        result = results[0]
+        label = result["label"]  # type: ignore
+
+        if label in ["1 star", "2 stars", "3 stars"]:
+            sentiment = "Negative"
         else:
-            pipeline_result = sentiment_pipeline(tweet.text)
-            if pipeline_result is None:
-                sentiment = "unknown"
-                continue
-            results = list(pipeline_result)
-            if not results:
-                sentiment = "unknown"
-                continue
-            result = results[0]
-            label = result["label"]  # type: ignore
+            sentiment = "Positive"
 
-            # Модель повертає оцінку 1-5 зірок. Інтерпретуємо:
-            if label in ["1 star", "2 stars"]:
-                sentiment = "negative"
-            elif label in ["4 stars", "5 stars"]:
-                sentiment = "positive"
-            else:
-                sentiment = "neutral"
+        print(f"Processing sentiment: {sentiment} | {tweet.text}")
 
-        print(
-            f"Processing tweet with language: {tweet.language} and sentiment: {sentiment}"
+        out_tweet = OutTweet(
+            text=tweet.text, language=tweet.language, sentiment=sentiment
         )
+        yield out_tweet
 
-        await out_topic.send(
-            value=OutTweet(
-                text=tweet.text, language=tweet.language, sentiment=sentiment
-            ),
-            force=True,
-        )
+
+if __name__ == "__main__":
+    app.main()

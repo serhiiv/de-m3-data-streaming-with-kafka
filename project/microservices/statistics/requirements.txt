@@ -1,1 +1,2 @@
-faust-streaming==0.11.3
+faust-streaming
+faust-streaming-rocksdb

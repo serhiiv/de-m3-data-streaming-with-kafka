@@ -4,10 +4,17 @@ import faust
 class Tweet(faust.Record):
     text: str
     language: str
+    sentiment: str
+    persons: list[str]
 
 
-app = faust.App("statistics", broker="kafka://broker:19092")
-topic = app.topic("person-sentiment-language-tweets-topic", value_type=Tweet)
+app = faust.App("statistics", broker="kafka://broker:19092", store="rocksdb://")
+topic = app.topic(
+    "person-sentiment-language-tweets-topic",
+    value_type=Tweet,
+    partitions=None,
+    internal=False,
+)
 detect_language = app.Table("detect-language", default=int, partitions=1)
 detect_sentiment = app.Table("detect-sentiment", default=int, partitions=1)
 detect_person = app.Table("detect-person", default=int, partitions=1)
@@ -16,7 +23,7 @@ detect_person = app.Table("detect-person", default=int, partitions=1)
 @app.agent(topic)
 async def statistics(tweets):
     async for tweet in tweets:
-        print(f"Processing tweet: {tweet.language} | {tweet.text}")
+        print(f"Processing tweet: {tweet.text}")
         detect_language[tweet.language] += 1
         detect_sentiment[tweet.sentiment] += 1
         for person in tweet.persons:
