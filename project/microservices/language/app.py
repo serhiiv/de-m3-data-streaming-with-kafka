@@ -23,7 +23,7 @@ out_topic = app.topic(
 @app.agent(topic, sink=[out_topic])
 async def language(stream: StreamT[InTweet]) -> AsyncIterable[OutTweet]:
     async for tweet in stream:
-       
+
         try:
             # Check if text is empty or whitespace
             if not tweet.text or tweet.text.isspace():

@@ -31,7 +31,7 @@ services:
 
   producer:
     container_name: producer
-    image: serhii714/de-module-3-kafka:producer
+    image: de-module-3-kafka:producer
     build:
       context: producer/
     volumes:
@@ -45,7 +45,7 @@ services:
 
   language:
     container_name: language
-    image: serhii714/de-module-3-kafka:language
+    image: de-module-3-kafka:language
     build:
       context: microservices/language/
     depends_on:
@@ -56,7 +56,7 @@ services:
 
   sentiment:
     container_name: sentiment
-    image: serhii714/de-module-3-kafka:sentiment
+    image: de-module-3-kafka:sentiment
     build:
       context: microservices/sentiment/
     depends_on:
@@ -67,7 +67,7 @@ services:
 
   person:
     container_name: person
-    image: serhii714/de-module-3-kafka:person
+    image: de-module-3-kafka:person
     build:
       context: microservices/person/
     depends_on:
@@ -78,7 +78,7 @@ services:
 
   statistics:
     container_name: statistics
-    image: serhii714/de-module-3-kafka:statistics
+    image: de-module-3-kafka:statistics
     build:
       context: microservices/statistics/
     ports:

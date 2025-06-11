@@ -1,8 +1,14 @@
--r microservices/language/requirements.txt
--r microservices/person/requirements.txt
--r microservices/sentiment/requirements.txt
--r microservices/statistics/requirements.txt
--r produser/requirements.txt
+# -r microservices/language/requirements.txt
+# -r microservices/person/requirements.txt
+# -r microservices/sentiment/requirements.txt
+# -r microservices/statistics/requirements.txt
+-r producer/requirements.txt
 
+faust-streaming
+faust-streaming-rocksdb
+langdetect
+transformers[torch]
+
+# For development purposes, we include the following packages
 confluent-kafka-stubs
 pandas-stubs

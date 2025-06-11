@@ -51,6 +51,7 @@ def produce():
             value=json.dumps(message_value).encode("utf-8"),
             on_delivery=delivery_report,
         )
+        time.sleep(0.001)  # Simulate some delay between messages
 
     producer.flush()
 

@@ -3,10 +3,13 @@
 echo
 echo "Starting experiment:"
 echo
-# echo "Build :"
-# echo
-# docker compose build --no-cache --push
-# echo
+echo "Pull images :"
+echo
+docker pull apache/kafka:3.9.1
+docker pull python:3.12.9-slim
+docker build -f prebuilt-images/Dockerfile.faust -t de-module-3-kafka:faust .
+docker build -f prebuilt-images/Dockerfile.torch -t de-module-3-kafka:torch .
+echo
 echo "UP:"
 echo
 docker compose up -d 
@@ -48,9 +51,12 @@ done
 echo
 echo "delete images"
 echo
+docker image rm de-module-3-kafka:producer
+docker image rm de-module-3-kafka:language
+docker image rm de-module-3-kafka:sentiment
+docker image rm de-module-3-kafka:person
+docker image rm de-module-3-kafka:statistics
+docker image rm python:3.12.9-slim
 docker image rm apache/kafka:3.9.1
-docker image rm serhii714/de-module-3-kafka:producer
-docker image rm serhii714/de-module-3-kafka:language
-docker image rm serhii714/de-module-3-kafka:sentiment
-docker image rm serhii714/de-module-3-kafka:person
-docker image rm serhii714/de-module-3-kafka:statistics
+docker image rm de-module-3-kafka:faust
+docker image rm de-module-3-kafka:torch

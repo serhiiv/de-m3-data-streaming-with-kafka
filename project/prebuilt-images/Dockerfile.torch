@@ -1,0 +1,3 @@
+FROM serhii714/de-module-3-kafka:faust
+
+RUN pip install transformers[torch]
