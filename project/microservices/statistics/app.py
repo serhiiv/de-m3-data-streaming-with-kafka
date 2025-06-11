@@ -24,19 +24,24 @@ class TweetP(faust.Record):
 app = faust.App("statistics", broker="kafka://broker:19092", store="rocksdb://")
 
 topic_language = app.topic(
-    "language-tweets-topic", value_type=TweetL, partitions=None, internal=False
+    "language-tweets-topic", 
+    value_type=TweetL,
+    # partitions=None, 
+    # internal=False
 )
+
 topic_sentiment = app.topic(
     "sentiment-language-tweets-topic",
     value_type=TweetS,
-    partitions=None,
-    internal=False,
+    # partitions=None,
+    # internal=False,
 )
+
 topic_person = app.topic(
     "person-sentiment-language-tweets-topic",
     value_type=TweetP,
-    partitions=None,
-    internal=False,
+    # partitions=None,
+    # internal=False,
 )
 
 table_languages = app.Table("language", default=int, partitions=1)
