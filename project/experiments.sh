@@ -18,8 +18,9 @@ echo "Containers status:"
 echo
 docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 echo
-echo "wait 3 seconds to open Statistics"
-sleep 3
+echo "Wait 30 seconds to load models and prepare Statistics."
+sleep 30
+docker restart statistics
 echo
 x-www-browser "http://localhost:6066/"
 sleep 20
